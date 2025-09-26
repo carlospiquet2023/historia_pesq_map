@@ -27,6 +27,15 @@ exports.handler = async function(event, context) {
 
     if (!resp.ok) {
       const text = await resp.text();
+      // Se o formulário não existe (404), retorna array vazio em vez de erro
+      if (resp.status === 404) {
+        console.log('Formulário não encontrado, retornando array vazio');
+        return {
+          statusCode: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify([])
+        };
+      }
       return { statusCode: resp.status, body: text };
     }
 
