@@ -15,10 +15,5 @@
     "nodemon": "^3.0.1"
   },
   "author": "Carlos Antonio de Oliveira Piquet",
-  "license": "Proprietary",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/carlospiquet2023/historia_pesq_map.git"
-  },
-  "homepage": "https://historia-pesq-map.netlify.app/"
+  "license": "Proprietary"
 }
