@@ -9,10 +9,10 @@ const PORT = 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Arquivo para armazenar os dados
-const DATA_FILE = path.join(__dirname, 'survey-data.json');
+const DATA_FILE = path.join(__dirname, '../survey-data.json');
 
 // Inicializar arquivo de dados se não existir
 if (!fs.existsSync(DATA_FILE)) {
@@ -25,12 +25,7 @@ app.post('/api/survey', (req, res) => {
         const surveyData = req.body;
 
         // Ler dados existentes
-        let existingData = [];
-        try {
-            existingData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-        } catch (error) {
-            console.log('Arquivo de dados vazio ou corrompido, iniciando novo');
-        }
+        existingData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
 
         // Adicionar novo dado
         existingData.push({
@@ -63,16 +58,16 @@ app.get('/api/survey', (req, res) => {
 
 // Rota para servir o painel admin
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
+    res.sendFile(path.join(__dirname, '../public/admin.html'));
 });
 
 // Rota para servir o site principal (fallback para index.html)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // Servir arquivos estáticos
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, '../public')));
 
 app.listen(PORT, () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
