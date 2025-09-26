@@ -301,24 +301,33 @@ function initSurveyForm() {
         };
 
         try {
-            // Enviar dados para o backend
-            const response = await fetch('https://historia-pesq-map-backend.onrender.com/api/survey', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
+            // Adicionar dados como campos ocultos ao formulário
+            const hiddenFields = {
+                idade: data.idade,
+                escolaridade: data.escolaridade,
+                cidade: data.cidade,
+                bairro: data.bairro,
+                interesse: data.interesse,
+                inicio: data.inicio,
+                timestamp: data.timestamp
+            };
 
-            if (response.ok) {
-                // Marcar como respondido
-                localStorage.setItem('surveyCompleted', 'true');
-                surveyButton.style.display = 'none';
-                alert('Agradecemos o seu apoio! Seus dados nos ajudarão a melhorar as oportunidades educacionais.');
-                hideSurvey();
-            } else {
-                alert('Erro ao enviar resposta. Tente novamente.');
+            for (const [key, value] of Object.entries(hiddenFields)) {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = key;
+                hiddenInput.value = value;
+                surveyForm.appendChild(hiddenInput);
             }
+
+            // Enviar formulário via Netlify Forms
+            surveyForm.submit();
+
+            // Marcar como respondido
+            localStorage.setItem('surveyCompleted', 'true');
+            surveyButton.style.display = 'none';
+            alert('Agradecemos o seu apoio! Seus dados nos ajudarão a melhorar as oportunidades educacionais.');
+            hideSurvey();
         } catch (error) {
             console.error('Erro:', error);
             alert('Erro de conexão. Tente novamente mais tarde.');

@@ -82,7 +82,8 @@
             <button class="close-survey" id="closeSurvey" title="Fechar">&times;</button>
             <h2>EduRadar - Pesquisa de Demanda Educacional</h2>
             <p>Para que possamos melhorar cada vez mais, agradecemos o seu apoio respondendo esta pesquisa anônima!</p>
-            <form id="surveyForm">
+            <form id="surveyForm" netlify>
+                <input type="hidden" name="form-name" value="survey">
                 <div class="form-group">
                     <label for="idade">Faixa Etária:</label>
                     <select id="idade" name="idade" required>
