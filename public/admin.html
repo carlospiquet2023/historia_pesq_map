@@ -210,7 +210,17 @@
                 console.error('Erro ao carregar dados:', error);
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('error').style.display = 'block';
-                document.getElementById('error').textContent = 'Erro ao carregar dados. Tente novamente.';
+                // Mostrar mensagem de erro mais detalhada quando possível
+                let message = 'Erro ao carregar dados. Tente novamente.';
+                try {
+                    if (error && error.message) message = error.message;
+                    else if (typeof error === 'string') message = error;
+                } catch (e) {}
+                // Adicionar instrução útil caso faltem variáveis de ambiente
+                if (message.includes('NETLIFY_API_TOKEN') || message.includes('NETLIFY_SITE_ID')) {
+                    message += ' \nVerifique se as variáveis NETLIFY_API_TOKEN e NETLIFY_SITE_ID estão configuradas no painel do Netlify.';
+                }
+                document.getElementById('error').textContent = message;
             }
         }
 
