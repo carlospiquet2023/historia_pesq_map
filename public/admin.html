@@ -197,13 +197,27 @@
             try {
                 // Tenta buscar submissões via Netlify Function local
                 const response = await fetch('/.netlify/functions/get-submissions');
-                const submissions = await response.json();
+                let submissions = await response.json();
 
-                // Se a função retornou um objeto de erro, exibir mensagem
+                // Se a função retornou uma string JSON ou texto, tentar normalizar
+                if (typeof submissions === 'string') {
+                    try {
+                        submissions = JSON.parse(submissions);
+                    } catch (e) {
+                        throw new Error(submissions);
+                    }
+                }
+
+                // Se a função retornou um objeto de erro como { error: '...' }
+                if (submissions && typeof submissions === 'object' && !Array.isArray(submissions)) {
+                    if (submissions.error) throw new Error(submissions.error);
+                    // Se o objeto tem keys que não são array, lançar para exibir
+                    throw new Error('Resposta inesperada da função: ' + JSON.stringify(submissions));
+                }
+
+                // Agora garantimos que seja um array
                 if (!Array.isArray(submissions)) {
-                    // Pode ser { error: '...' } ou texto
-                    const errMsg = (submissions && submissions.error) ? submissions.error : JSON.stringify(submissions);
-                    throw new Error(errMsg || 'Resposta inesperada da função');
+                    throw new Error('Resposta inesperada da função (não é array)');
                 }
 
                 // As submissões do Netlify vêm com campos em 'data' ou 'fields'
