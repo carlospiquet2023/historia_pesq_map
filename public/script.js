@@ -2028,8 +2028,8 @@ function destacarVisualmentePorCategoria(categoria) {
         // Calcular coordenadas centrais dos pontos destacados
         const lats = pontosDestacados.map(p => p.coords[0]);
         const lngs = pontosDestacados.map(p => p.coords[1]);
-        const centerLat = lats.reduce((a, b) => a + b) / lats.length;
-        const centerLng = lngs.reduce((a, b) => a + b) / lngs.length;
+    const centerLat = lats.length ? lats.reduce((a, b) => a + b, 0) / lats.length : 0;
+    const centerLng = lngs.length ? lngs.reduce((a, b) => a + b, 0) / lngs.length : 0;
         
         // Sem alterar a visualização do mapa para não desorientar o usuário
         // map.setView([centerLat, centerLng], 16); 
@@ -2068,8 +2068,8 @@ function destacarPontosPorCategoria(categoria) {
         // Calcular coordenadas centrais dos pontos destacados
         const lats = pontosDestacados.map(p => p.coords[0]);
         const lngs = pontosDestacados.map(p => p.coords[1]);
-        const centerLat = lats.reduce((a, b) => a + b) / lats.length;
-        const centerLng = lngs.reduce((a, b) => a + b) / lngs.length;
+    const centerLat = lats.length ? lats.reduce((a, b) => a + b, 0) / lats.length : 0;
+    const centerLng = lngs.length ? lngs.reduce((a, b) => a + b, 0) / lngs.length : 0;
         
         // Centralizar no grupo de pontos
         map.setView([centerLat, centerLng], 16);
@@ -2160,10 +2160,8 @@ function scrollToInfoSection() {
         infoSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.5)';
         infoSection.style.transition = 'all 0.5s ease';
         
-        // Calcular a posição da seção de informações relativa ao topo da sidebar
-        const sidebarRect = sidebar.getBoundingClientRect();
-        const infoRect = infoSection.getBoundingClientRect();
-        const scrollPosition = infoSection.offsetTop - 20; // 20px de margem
+    // Calcular a posição da seção de informações relativa ao topo da sidebar
+    const scrollPosition = infoSection.offsetTop - 20; // 20px de margem
         
         // Fazer o scroll suave
         sidebar.scrollTo({

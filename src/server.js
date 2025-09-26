@@ -24,8 +24,8 @@ app.post('/api/survey', (req, res) => {
     try {
         const surveyData = req.body;
 
-        // Ler dados existentes
-        existingData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    // Ler dados existentes
+    const existingData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
 
         // Adicionar novo dado
         existingData.push({
