@@ -10,16 +10,16 @@
 ## 🌐 **URLs Separadas**
 
 ### Site Principal
-- **URL**: `https://seudominio.com/`
+- **URL**: `https://historia-pesq-map.netlify.app/`
 - **Conteúdo**: Mapa histórico interativo + formulário de pesquisa
 
 ### Painel Admin
-- **URL**: `https://seudominio.com/admin`
+- **URL**: `https://historia-pesq-map.netlify.app/admin`
 - **Conteúdo**: Dashboard com estatísticas e gráficos dos dados coletados
 - **Acesso**: Qualquer pessoa pode acessar (dados públicos)
 
 ### API
-- **Endpoint**: `https://seudominio.com/api/survey`
+- **Endpoint**: `https://historia-pesq-map.netlify.app/api/survey`
 - **Método**: POST (para enviar dados) / GET (para obter dados)
 
 --- - TODOS OS DIREITOS RESERVADOS
