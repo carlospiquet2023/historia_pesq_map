@@ -199,6 +199,13 @@
                 const response = await fetch('/.netlify/functions/get-submissions');
                 const submissions = await response.json();
 
+                // Se a função retornou um objeto de erro, exibir mensagem
+                if (!Array.isArray(submissions)) {
+                    // Pode ser { error: '...' } ou texto
+                    const errMsg = (submissions && submissions.error) ? submissions.error : JSON.stringify(submissions);
+                    throw new Error(errMsg || 'Resposta inesperada da função');
+                }
+
                 // As submissões do Netlify vêm com campos em 'data' ou 'fields'
                 const data = submissions.map(s => s.data || s.fields || {});
 
