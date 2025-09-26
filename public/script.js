@@ -302,7 +302,7 @@ function initSurveyForm() {
 
         try {
             // Enviar dados para o backend
-            const response = await fetch('https://historia-pesq-map.netlify.app/api/survey', {
+            const response = await fetch('https://historia-pesq-map-backend.onrender.com/api/survey', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
