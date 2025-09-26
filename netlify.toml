@@ -1,0 +1,15 @@
+[build]
+	# Diretório que contém os arquivos estáticos a serem publicados
+	publish = "public"
+	# Se você não tem nenhum build step, mantenha command em branco ou remova
+	command = ""
+
+[[redirects]]
+	from = "/admin"
+	to = "/admin.html"
+	status = 200
+
+[[redirects]]
+	from = "/*"
+	to = "/index.html"
+	status = 200
