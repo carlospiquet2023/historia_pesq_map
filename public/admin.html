@@ -197,72 +197,100 @@
             try {
                 // Tenta buscar submissões via Netlify Function local
                 const response = await fetch('/.netlify/functions/get-submissions');
-                let submissions = await response.json();
+                const submissions = await response.json();
 
-                // Se a função retornou uma string JSON ou texto, tentar normalizar
-                if (typeof submissions === 'string') {
-                    try {
-                        submissions = JSON.parse(submissions);
-                    } catch (e) {
-                        throw new Error(submissions);
-                    }
-                }
-
-                // Se a função retornou um objeto de erro como { error: '...' }
+                // Se a função retornar um objeto de erro, mostrar mensagem amigável
                 if (submissions && typeof submissions === 'object' && !Array.isArray(submissions)) {
-                    if (submissions.error) throw new Error(submissions.error);
-                    // Se o objeto tem keys que não são array, lançar para exibir
-                    throw new Error('Resposta inesperada da função: ' + JSON.stringify(submissions));
+                    if (submissions.error) {
+                        // tentar fallback para backend local /api/survey
+                        console.warn('Função retornou erro, tentando fallback /api/survey', submissions.error);
+                        try {
+                            const resp2 = await fetch('/api/survey');
+                            if (resp2.ok) {
+                                const localData = await resp2.json();
+                                return finishLoad(localData);
+                            }
+                        } catch (e) {
+                            // continuar para mostrar erro abaixo
+                        }
+                        showError(`Erro da função: ${submissions.error}`);
+                        return;
+                    }
+                    // Alguns retornos podem ser { body: '...'} contendo JSON string
+                    if (typeof submissions.body === 'string') {
+                        try {
+                            const parsed = JSON.parse(submissions.body);
+                            if (Array.isArray(parsed)) {
+                                return finishLoad(parsed);
+                            }
+                        } catch (e) {
+                            // passar adiante
+                        }
+                    }
+                    showError('Resposta inesperada da função. Verifique variáveis de ambiente no Netlify.');
+                    return;
                 }
 
-                // Agora garantimos que seja um array
                 if (!Array.isArray(submissions)) {
-                    throw new Error('Resposta inesperada da função (não é array)');
+                    showError('Resposta inválida: esperado array de submissões.');
+                    return;
                 }
 
                 // As submissões do Netlify vêm com campos em 'data' ou 'fields'
                 const data = submissions.map(s => s.data || s.fields || {});
 
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-
-                processData(data);
+                finishLoad(data);
             } catch (error) {
                 console.error('Erro ao carregar dados:', error);
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('error').style.display = 'block';
-                // Mostrar mensagem de erro mais detalhada quando possível
-                let message = 'Erro ao carregar dados. Tente novamente.';
-                try {
-                    if (error && error.message) message = error.message;
-                    else if (typeof error === 'string') message = error;
-                } catch (e) {}
-                // Adicionar instrução útil caso faltem variáveis de ambiente
-                if (message.includes('NETLIFY_API_TOKEN') || message.includes('NETLIFY_SITE_ID')) {
-                    message += ' \nVerifique se as variáveis NETLIFY_API_TOKEN e NETLIFY_SITE_ID estão configuradas no painel do Netlify.';
-                }
-                document.getElementById('error').textContent = message;
+                showError('Erro ao carregar dados. Tente novamente.');
             }
         }
 
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            const el = document.getElementById('error');
+            el.style.display = 'block';
+            el.textContent = message;
+        }
+
+        function finishLoad(data) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+            processData(data);
+        }
+
         function processData(data) {
+            if (!Array.isArray(data) || data.length === 0) {
+                // Mostrar estatísticas vazias
+                document.getElementById('total-responses').textContent = 0;
+                document.getElementById('unique-cities').textContent = 0;
+                document.getElementById('avg-age').textContent = '-';
+                document.getElementById('most-interest').textContent = '-';
+                // Limpar gráficos e tabela
+                const tableBody = document.getElementById('table-body');
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">Nenhuma resposta encontrada.</td></tr>';
+                return;
+            }
+
             // Estatísticas básicas
             document.getElementById('total-responses').textContent = data.length;
 
             const cities = [...new Set(data.map(d => d.cidade))];
             document.getElementById('unique-cities').textContent = cities.length;
 
-            // Idade média
+            // Idade média (usa mapeamento por faixa)
             const ageMap = { '18-24': 21, '25-34': 29.5, '35-44': 39.5, '45+': 50 };
-            const avgAge = data.reduce((sum, d) => sum + (ageMap[d.idade] || 0), 0) / data.length;
-            document.getElementById('avg-age').textContent = Math.round(avgAge);
+            const validAges = data.map(d => ageMap[d.idade]).filter(Boolean);
+            const avgAge = validAges.length ? (validAges.reduce((s, v) => s + v, 0) / validAges.length) : 0;
+            document.getElementById('avg-age').textContent = validAges.length ? Math.round(avgAge) : '-';
 
             // Interesse mais comum
             const interests = data.reduce((acc, d) => {
+                if (!d || !d.interesse) return acc;
                 acc[d.interesse] = (acc[d.interesse] || 0) + 1;
                 return acc;
             }, {});
-            const mostInterest = Object.keys(interests).reduce((a, b) => interests[a] > interests[b] ? a : b, '');
+            const mostInterest = Object.keys(interests).length ? Object.keys(interests).reduce((a, b) => interests[a] > interests[b] ? a : b, '') : '';
             const interestLabels = {
                 'ensino-tecnico': 'Ensino Técnico',
                 'graduacao': 'Graduação',
@@ -270,10 +298,11 @@
                 'cursos-livres': 'Cursos Livres',
                 'idiomas': 'Idiomas'
             };
-            document.getElementById('most-interest').textContent = interestLabels[mostInterest] || mostInterest;
+            document.getElementById('most-interest').textContent = interestLabels[mostInterest] || mostInterest || '-';
 
             // Gráfico de idade
             const ageCounts = data.reduce((acc, d) => {
+                if (!d || !d.idade) return acc;
                 acc[d.idade] = (acc[d.idade] || 0) + 1;
                 return acc;
             }, {});
@@ -292,6 +321,7 @@
 
             // Gráfico de interesses
             const interestCounts = data.reduce((acc, d) => {
+                if (!d || !d.interesse) return acc;
                 acc[d.interesse] = (acc[d.interesse] || 0) + 1;
                 return acc;
             }, {});
@@ -324,13 +354,13 @@
 
             data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(response => {
                 const row = tableBody.insertRow();
-                row.insertCell(0).textContent = new Date(response.timestamp).toLocaleDateString('pt-BR');
-                row.insertCell(1).textContent = response.idade;
-                row.insertCell(2).textContent = response.escolaridade;
-                row.insertCell(3).textContent = response.cidade;
-                row.insertCell(4).textContent = response.bairro;
-                row.insertCell(5).textContent = interestLabels[response.interesse] || response.interesse;
-                row.insertCell(6).textContent = response.inicio;
+                row.insertCell(0).textContent = response.timestamp ? new Date(response.timestamp).toLocaleDateString('pt-BR') : '-';
+                row.insertCell(1).textContent = response.idade || '-';
+                row.insertCell(2).textContent = response.escolaridade || '-';
+                row.insertCell(3).textContent = response.cidade || '-';
+                row.insertCell(4).textContent = response.bairro || '-';
+                row.insertCell(5).textContent = interestLabels[response.interesse] || response.interesse || '-';
+                row.insertCell(6).textContent = response.inicio || '-';
             });
         }
 

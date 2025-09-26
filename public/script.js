@@ -323,6 +323,19 @@ function initSurveyForm() {
             // Enviar formulário via Netlify Forms
             surveyForm.submit();
 
+            // Tentar também enviar para backend local/externo (se disponível)
+            try {
+                // enviar cópia JSON para /api/survey (src/server.js espera JSON)
+                await fetch('/api/survey', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } catch (err) {
+                // Ignorar falhas (pode não existir em deploy Netlify-only)
+                console.debug('Envio para /api/survey falhou (normal em host estático):', err);
+            }
+
             // Marcar como respondido
             localStorage.setItem('surveyCompleted', 'true');
             surveyButton.style.display = 'none';
